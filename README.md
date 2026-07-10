@@ -1,1 +1,1 @@
-Implementation of a backend that satisfies the following specifications: realworld-docs.netlify.app/specifications/backend/endpoints/
+A FastAPI implementation of the RealWorld backend specification: realworld-docs.netlify.app/specifications/backend/endpoints/
