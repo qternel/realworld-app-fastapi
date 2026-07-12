@@ -1,4 +1,3 @@
-Update User
 Get Profile
 Follow user
 Unfollow user

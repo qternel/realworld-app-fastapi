@@ -125,14 +125,14 @@ header_scheme = APIKeyHeader(name="Authorization")
 
 
 def check_jwt(authorization: Annotated[str, Depends(header_scheme)]):
-    print(authorization)
+    # print(authorization)
     token = authorization
     if token is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="token is null"
         )
     parts = token.split()
-    print(parts)
+    # print(parts)
     if len(parts) != 2:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="")
 
