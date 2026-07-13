@@ -121,16 +121,15 @@ class AuthService:
         return jwt.encode(payload_jwt, SECRET_KEY, algorithm=ALGORITHM)
 
 
-header_scheme = APIKeyHeader(name="Authorization")
+header_scheme_required = APIKeyHeader(name="Authorization", auto_error=True)
+header_scheme_optional = APIKeyHeader(name="Authorization", auto_error=False)
 
 
-def check_jwt(authorization: Annotated[str, Depends(header_scheme)]):
-    # print(authorization)
+def _check_jwt_helper(authorization: str | None):
     token = authorization
     if token is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="token is null"
-        )
+        return None
+
     parts = token.split()
     # print(parts)
     if len(parts) != 2:
@@ -146,3 +145,11 @@ def check_jwt(authorization: Annotated[str, Depends(header_scheme)]):
         return payload
     except JWTError:
         raise
+
+
+def check_jwt_required(authorization: Annotated[str, Depends(header_scheme_required)]):
+    return _check_jwt_helper(authorization)
+
+
+def check_jwt_optional(authorization: Annotated[str, Depends(header_scheme_optional)]):
+    return _check_jwt_helper(authorization)

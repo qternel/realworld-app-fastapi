@@ -11,3 +11,10 @@ class Users(Base):
     bio = Column(String, nullable=True)
     image = Column(String, nullable=True)
     hashed_password = Column(String)
+
+
+class Subscribers(Base):
+    __tablename__ = "subscribers"
+    id = Column(Integer, primary_key=True)
+    ownerId = Column(Integer, index=True)
+    subscriberId = Column(Integer, index=True)
