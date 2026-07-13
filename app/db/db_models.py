@@ -13,8 +13,8 @@ class Users(Base):
     hashed_password = Column(String)
 
 
-class Subscribers(Base):
-    __tablename__ = "subscribers"
+class Followers(Base):
+    __tablename__ = "followers"
     id = Column(Integer, primary_key=True)
-    ownerId = Column(Integer, index=True)
-    subscriberId = Column(Integer, index=True)
+    owner_id = Column(Integer, index=True)
+    follower_id = Column(Integer, index=True)

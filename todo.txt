@@ -1,5 +1,3 @@
-Get Profile
-Follow user
 Unfollow user
 List Articles
 Feed Articles
