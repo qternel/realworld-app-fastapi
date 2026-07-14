@@ -78,3 +78,28 @@ class ProfilesService:
                 username=usr.username, bio=usr.bio, image=usr.image, following=True
             )
         )
+
+    def unfollow_user(self, username: str, current_user_id: int):
+        usr = self._db.query(Users).filter(Users.username == username).first()
+        if usr is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"user {username} does not exist",
+            )
+
+        follower = (
+            self._db.query(Followers)
+            .filter(
+                Followers.owner_id == usr.id, Followers.follower_id == current_user_id
+            )
+            .first()
+        )
+        if follower is not None:
+            self._db.delete(follower)
+            self._db.commit()
+
+        return ProfileResponse(
+            profile=ProfileModel(
+                username=usr.username, bio=usr.bio, image=usr.image, following=False
+            )
+        )

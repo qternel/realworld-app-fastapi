@@ -34,3 +34,16 @@ async def follow_user(
     profiles_service: Annotated[ProfilesService, Depends()],
 ):
     return profiles_service.follow_user(username, int(payload.get("sub")))
+
+
+@router.delete(
+    "/api/profiles/{username}/follow",
+    status_code=status.HTTP_200_OK,
+    response_model=ProfileResponse,
+)
+async def unfollow_user(
+    username: str,
+    payload: Annotated[dict | None, Depends(check_jwt_required)],
+    profiles_service: Annotated[ProfilesService, Depends()],
+):
+    return profiles_service.unfollow_user(username, int(payload.get("sub")))

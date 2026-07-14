@@ -1,4 +1,3 @@
-Unfollow user
 List Articles
 Feed Articles
 Get Article
