@@ -50,6 +50,12 @@ class ProfilesService:
                 detail=f"user {username} does not exist",
             )
 
+        if current_user_id == usr.id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="you're trying to follow yourself",
+            )
+
         following = (
             self._db.query(Followers)
             .filter(
