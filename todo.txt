@@ -1,7 +1,6 @@
 List Articles
 Feed Articles
 Get Article
-Create Article
 Update Article
 Delete Article
 Add Comments to an Article
