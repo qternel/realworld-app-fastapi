@@ -20,3 +20,12 @@ async def create_article(
     articles_service: Annotated[ArticlesService, Depends()],
 ):
     return articles_service.create_article(int(payload.get("sub")), article_request)
+
+
+@router.delete("/api/articles/{slug}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_article(
+    payload: Annotated[dict, Depends(check_jwt_required)],
+    slug: str,
+    articles_service: Annotated[ArticlesService, Depends()],
+):
+    return articles_service.delete_article(int(payload.get("sub")), slug)

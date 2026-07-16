@@ -10,6 +10,7 @@ from models.articles_models import (
     CreateArticleModel,
 )
 from models.profiles_models import ProfileModel
+from sqlalchemy import exists
 from sqlalchemy.orm import Session
 from starlette import status
 
@@ -25,6 +26,17 @@ class ArticlesService:
                 status_code=status.HTTP_404_NOT_FOUND, detail="user not found"
             )
         slug = "-".join(article_request.article.title.lower().split())
+
+        article_slug_exists = self._db.query(
+            exists().where(Articles.slug == slug, Articles.authorId == current_user_id)
+        ).scalar()
+
+        if article_slug_exists:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="article with this name already exists",
+            )
+
         created_at = datetime.now()
         article = Articles(
             slug=slug,
@@ -52,3 +64,19 @@ class ArticlesService:
                 ),
             )
         )
+
+    def delete_article(self, current_user_id: int, slug: str):
+        article = (
+            self._db.query(Articles)
+            .filter(
+                Articles.slug == slug.casefold(), Articles.authorId == current_user_id
+            )
+            .first()
+        )
+        if not article:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="article not found"
+            )
+
+        self._db.delete(article)
+        self._db.commit()

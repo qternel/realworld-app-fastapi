@@ -33,7 +33,7 @@ class Followers(Base):
 class Articles(Base):
     __tablename__ = "articles"
     id = Column(Integer, primary_key=True)
-    slug = Column(String)
+    slug = Column(String, unique=True, index=True)
     title = Column(String)
     description = Column(String)
     body = Column(String)
