@@ -28,7 +28,7 @@ class ArticlesService:
         slug = "-".join(article_request.article.title.lower().split())
 
         article_slug_exists = self._db.query(
-            exists().where(Articles.slug == slug, Articles.authorId == current_user_id)
+            exists().where(Articles.slug == slug)
         ).scalar()
 
         if article_slug_exists:
@@ -64,6 +64,31 @@ class ArticlesService:
                 ),
             )
         )
+
+    def get_article(self, current_user_id: int, slug: str):
+        article = self._db.query(Articles).filter(Articles.slug == slug).first()
+        if not article:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="article not found"
+            )
+        params = article.__dict__.copy()
+        params.pop("authorId")
+        author = article.author
+        following = author.id != current_user_id and any(
+            follower.follower_id == current_user_id for follower in author.followers
+        )
+        params.update(
+            {
+                "author": ProfileModel(
+                    username=author.username,
+                    bio=author.bio,
+                    image=author.image,
+                    following=following,
+                )
+            }
+        )
+
+        return ArticleModelResponse(article=ArticleModelResponseInner(**params))
 
     def delete_article(self, current_user_id: int, slug: str):
         article = (

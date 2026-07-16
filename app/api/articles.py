@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from models.articles_models import ArticleModelResponse, CreateArticleModel
 from services.articles_service import ArticlesService
-from services.auth_service import check_jwt_required
+from services.auth_service import check_jwt_optional, check_jwt_required
 from starlette import status
 
 router = APIRouter()
@@ -20,6 +20,19 @@ async def create_article(
     articles_service: Annotated[ArticlesService, Depends()],
 ):
     return articles_service.create_article(int(payload.get("sub")), article_request)
+
+
+@router.get(
+    "/api/articles/{slug}",
+    status_code=status.HTTP_200_OK,
+    response_model=ArticleModelResponse,
+)
+async def get_article(
+    payload: Annotated[dict, Depends(check_jwt_optional)],
+    slug: str,
+    articles_service: Annotated[ArticlesService, Depends()],
+):
+    return articles_service.get_article(int(payload.get("sub")), slug)
 
 
 @router.delete("/api/articles/{slug}", status_code=status.HTTP_204_NO_CONTENT)
