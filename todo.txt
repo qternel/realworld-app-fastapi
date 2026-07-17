@@ -1,6 +1,5 @@
 List Articles
 Feed Articles
-Update Article
 Add Comments to an Article
 Get Comments from an Article
 Delete Comment

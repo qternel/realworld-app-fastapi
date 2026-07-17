@@ -33,7 +33,7 @@ class UserService:
     def update_user(self, payload: dict, update_request: UpdateRequest):
         user_id = int(payload.get("sub"))
         usr = self._db.query(Users).filter(Users.id == user_id).first()
-        if len(payload) > 0:
+        if len(payload) > 0: #
             if update_request.user.email is not None:
                 if self._db.query(Users.email == update_request.user.email) is not None:
                     raise HTTPException(

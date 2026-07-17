@@ -28,3 +28,13 @@ class ArticleModelResponseInner(ArticleModel):
 
 class ArticleModelResponse(BaseModel):
     article: ArticleModelResponseInner
+
+
+class UpdateArticleModelInner(BaseModel):
+    title: Annotated[str | None, Field(min_length=1, max_length=255)] = None
+    description: Annotated[str | None, Field(min_length=1)] = None
+    body: Annotated[str | None, Field(min_length=1)] = None
+
+
+class UpdateArticleModel(BaseModel):
+    article: UpdateArticleModelInner
