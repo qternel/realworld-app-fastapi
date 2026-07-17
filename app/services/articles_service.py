@@ -72,6 +72,7 @@ class ArticlesService:
         )
         self._db.add(article)
         self._db.commit()
+        self._db.refresh(article)
 
         return self._get_article_response(article, current_user_id)
 
