@@ -22,8 +22,16 @@ class ArticlesService:
 
     def _get_article_response(self, article: Articles, current_user_id: int):
         params = article.__dict__.copy()
-        print(params)
         params.pop("authorId")
+        params.update(
+            {
+                "favorited": article
+                in self._db.query(Users)
+                .filter(Users.id == current_user_id)
+                .first()
+                .favorite_articles
+            }
+        )
         author = article.author
         following = author.id != current_user_id and any(
             follower.follower_id == current_user_id for follower in author.followers
@@ -152,3 +160,25 @@ class ArticlesService:
 
         self._db.delete(article)
         self._db.commit()
+
+    def favorite_article(self, current_user_id: int, slug: str):
+        usr = self._db.query(Users).filter(Users.id == current_user_id).first()
+        if usr is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="user not found"
+            )
+
+        article = (
+            self._db.query(Articles).filter(Articles.slug == slug.casefold()).first()
+        )
+        if article is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="article not found"
+            )
+        if article not in usr.favorite_articles:
+            article.favoritesCount += 1
+            usr.favorite_articles.append(article)
+            self._db.commit()
+            self._db.refresh(article)
+
+        return self._get_article_response(article, current_user_id)

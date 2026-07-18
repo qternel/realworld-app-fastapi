@@ -69,9 +69,10 @@ class ProfilesService:
         )
 
         if not following:
-            follower = Followers(owner_id=usr.id, follower_id=current_user_id)
-            self._db.add(follower)
+            follower = Followers(follower_id=current_user_id)
+            usr.followers.append(follower)
             self._db.commit()
+            self._db.refresh(usr)
 
         return ProfileResponse(
             profile=ProfileModel(
@@ -95,8 +96,9 @@ class ProfilesService:
             .first()
         )
         if follower is not None:
-            self._db.delete(follower)
+            usr.followers.remove(follower)
             self._db.commit()
+            self._db.refresh(usr)
 
         return ProfileResponse(
             profile=ProfileModel(

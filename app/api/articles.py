@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Path, Query
 from models.articles_models import (
     ArticleModelResponse,
     CreateArticleModel,
@@ -33,7 +33,7 @@ async def create_article(
 )
 async def get_article(
     payload: Annotated[dict, Depends(check_jwt_optional)],
-    slug: str,
+    slug: Annotated[str, Path(min_length=1)],
     articles_service: Annotated[ArticlesService, Depends()],
 ):
     return articles_service.get_article(int(payload.get("sub")), slug)
@@ -46,7 +46,7 @@ async def get_article(
 )
 async def update_article(
     payload: Annotated[dict, Depends(check_jwt_required)],
-    slug: str,
+    slug: Annotated[str, Path(min_length=1)],
     update_request: UpdateArticleModel,
     articles_service: Annotated[ArticlesService, Depends()],
 ):
@@ -58,7 +58,25 @@ async def update_article(
 @router.delete("/api/articles/{slug}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_article(
     payload: Annotated[dict, Depends(check_jwt_required)],
-    slug: str,
+    slug: Annotated[str, Path(min_length=1)],
     articles_service: Annotated[ArticlesService, Depends()],
 ):
     return articles_service.delete_article(int(payload.get("sub")), slug)
+
+
+@router.post(
+    "/api/articles/{slug}/favorite",
+    status_code=status.HTTP_200_OK,
+    response_model=ArticleModelResponse,
+)
+async def favorite_article(
+    slug: Annotated[str, Path(min_length=1)],
+    payload: Annotated[str, Depends(check_jwt_required)],
+    articles_service: Annotated[ArticlesService, Depends()],
+):
+    return articles_service.favorite_article(int(payload.get("sub")), slug)
+
+
+# @router.get("/api/articles", status_code=status.HTTP_200_OK, response_model=...)
+# async def get_articles(tag: Annotated[str, Query(min_length=1)], author, favorited):
+#     pass

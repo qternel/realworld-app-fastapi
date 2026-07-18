@@ -7,10 +7,18 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    Table,
 )
 from sqlalchemy.orm import relationship
 
 from .database import Base
+
+users_articles = Table(
+    "users_articles",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
+    Column("article_id", Integer, ForeignKey("articles.id"), primary_key=True),
+)
 
 
 class Users(Base):
@@ -43,6 +51,10 @@ class Users(Base):
         cascade="all, delete-orphan",
     )
 
+    favorite_articles = relationship(
+        "Articles", secondary=users_articles, back_populates="favorited_by"
+    )
+
 
 class Followers(Base):
     __tablename__ = "followers"
@@ -67,8 +79,11 @@ class Articles(Base):
     tagList = Column(JSON, nullable=True)
     createdAt = Column(DateTime)
     updatedAt = Column(DateTime)
-    favorited = Column(Boolean, default=False)
     favoritesCount = Column(Integer, default=0)
     authorId = Column(Integer, ForeignKey("users.id"))
 
     author = relationship("Users", foreign_keys=[authorId], back_populates="articles")
+
+    favorited_by = relationship(
+        "Users", secondary=users_articles, back_populates="favorite_articles"
+    )
