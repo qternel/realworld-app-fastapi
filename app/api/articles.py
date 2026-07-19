@@ -77,6 +77,14 @@ async def favorite_article(
     return articles_service.favorite_article(int(payload.get("sub")), slug)
 
 
-# @router.get("/api/articles", status_code=status.HTTP_200_OK, response_model=...)
-# async def get_articles(tag: Annotated[str, Query(min_length=1)], author, favorited):
-#     pass
+@router.delete(
+    "/api/articles/{slug}/favorite",
+    status_code=status.HTTP_200_OK,
+    response_model=ArticleModelResponse,
+)
+async def unfavorite_article(
+    slug: Annotated[str, Path(min_length=1)],
+    payload: Annotated[str, Depends(check_jwt_required)],
+    articles_service: Annotated[ArticlesService, Depends()],
+):
+    return articles_service.unfavorite_article(int(payload.get("sub")), slug)

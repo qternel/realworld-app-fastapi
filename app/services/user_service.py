@@ -1,7 +1,7 @@
 from typing import Annotated
 
 import bcrypt
-from db.db_models import Users
+from db.db_models import User
 from db.utils import get_db
 from fastapi import Depends, HTTPException
 from jose import jwt
@@ -18,7 +18,7 @@ class UserService:
         self._db = db
 
     def get_current_user(self, payload: dict):
-        usr = self._db.query(Users).filter(Users.id == int(payload.get("sub"))).first()
+        usr = self._db.query(User).filter(User.id == int(payload.get("sub"))).first()
 
         return AuthResponse(
             user=UserResponse(
@@ -32,7 +32,7 @@ class UserService:
 
     def update_user(self, payload: dict, update_request: UpdateRequest):
         user_id = int(payload.get("sub"))
-        usr = self._db.query(Users).filter(Users.id == user_id).first()
+        usr = self._db.query(User).filter(User.id == user_id).first()
 
         all_fields_are_not_null = all(
             value is not None for field, value in update_request
@@ -40,7 +40,7 @@ class UserService:
 
         if all_fields_are_not_null:
             if update_request.user.email is not None:
-                if self._db.query(Users.email == update_request.user.email) is not None:
+                if self._db.query(User.email == update_request.user.email) is not None:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
                         detail="user with this email already exists",
@@ -48,7 +48,7 @@ class UserService:
                 usr.email = update_request.user.email
             if update_request.user.username is not None:
                 if (
-                    self._db.query(Users.username == update_request.user.username)
+                    self._db.query(User.username == update_request.user.username)
                     is not None
                 ):
                     raise HTTPException(

@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
 import bcrypt
-from db.db_models import Users
+from db.db_models import User
 from db.utils import get_db
 from fastapi import Depends, Header, HTTPException
 from fastapi.security import APIKeyHeader
@@ -29,11 +29,11 @@ class AuthService:
 
     def register_user(self, registration_request: RegistrationRequest):
         usr = (
-            self._db.query(Users)
+            self._db.query(User)
             .filter(
                 or_(
-                    Users.username == registration_request.user.username,
-                    Users.email == registration_request.user.email,
+                    User.username == registration_request.user.username,
+                    User.email == registration_request.user.email,
                 )
             )
             .first()
@@ -53,7 +53,7 @@ class AuthService:
             registration_request.user.password.encode("utf-8"), bcrypt.gensalt()
         ).decode("utf-8")
 
-        user_model = Users(
+        user_model = User(
             username=registration_request.user.username,
             email=registration_request.user.email,
             hashed_password=hashed_password,
@@ -82,8 +82,8 @@ class AuthService:
 
     def sign_in(self, sign_in_request: SignInRequest):
         usr = (
-            self._db.query(Users)
-            .filter(Users.email == sign_in_request.user.email)
+            self._db.query(User)
+            .filter(User.email == sign_in_request.user.email)
             .first()
         )
         if usr is None:

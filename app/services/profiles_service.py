@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from db.db_models import Followers, Users
+from db.db_models import Follower, User
 from db.utils import get_db
 from fastapi import Depends, HTTPException
 from models.profiles_models import ProfileModel, ProfileResponse
@@ -14,7 +14,7 @@ class ProfilesService:
         self._db = db
 
     def get_profile(self, username: str, current_user_id: int | None = None):
-        usr = self._db.query(Users).filter(Users.username == username).first()
+        usr = self._db.query(User).filter(User.username == username).first()
         if usr is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -22,11 +22,11 @@ class ProfilesService:
             )
         if current_user_id is not None:
             following = (
-                self._db.query(Followers)
+                self._db.query(Follower)
                 .filter(
                     and_(
-                        Followers.owner_id == usr.id,
-                        Followers.follower_id == current_user_id,
+                        Follower.owner_id == usr.id,
+                        Follower.follower_id == current_user_id,
                     )
                 )
                 .first()
@@ -43,7 +43,7 @@ class ProfilesService:
 
     def follow_user(self, username: str, current_user_id: int):
 
-        usr = self._db.query(Users).filter(Users.username == username).first()
+        usr = self._db.query(User).filter(User.username == username).first()
         if usr is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -57,11 +57,11 @@ class ProfilesService:
             )
 
         following = (
-            self._db.query(Followers)
+            self._db.query(Follower)
             .filter(
                 and_(
-                    Followers.owner_id == usr.id,
-                    Followers.follower_id == current_user_id,
+                    Follower.owner_id == usr.id,
+                    Follower.follower_id == current_user_id,
                 )
             )
             .first()
@@ -69,7 +69,7 @@ class ProfilesService:
         )
 
         if not following:
-            follower = Followers(follower_id=current_user_id)
+            follower = Follower(follower_id=current_user_id)
             usr.followers.append(follower)
             self._db.commit()
             self._db.refresh(usr)
@@ -81,7 +81,7 @@ class ProfilesService:
         )
 
     def unfollow_user(self, username: str, current_user_id: int):
-        usr = self._db.query(Users).filter(Users.username == username).first()
+        usr = self._db.query(User).filter(User.username == username).first()
         if usr is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -89,9 +89,9 @@ class ProfilesService:
             )
 
         follower = (
-            self._db.query(Followers)
+            self._db.query(Follower)
             .filter(
-                Followers.owner_id == usr.id, Followers.follower_id == current_user_id
+                Follower.owner_id == usr.id, Follower.follower_id == current_user_id
             )
             .first()
         )

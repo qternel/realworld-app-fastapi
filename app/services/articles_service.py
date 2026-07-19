@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Annotated
 
-from db.db_models import Articles, Users
+from db.db_models import Article, User
 from db.utils import get_db
 from fastapi import Depends, HTTPException
 from models.articles_models import (
@@ -20,14 +20,14 @@ class ArticlesService:
     def __init__(self, db: Annotated[Session, Depends(get_db)]):
         self._db = db
 
-    def _get_article_response(self, article: Articles, current_user_id: int):
+    def _get_article_response(self, article: Article, current_user_id: int):
         params = article.__dict__.copy()
         params.pop("authorId")
         params.update(
             {
                 "favorited": article
-                in self._db.query(Users)
-                .filter(Users.id == current_user_id)
+                in self._db.query(User)
+                .filter(User.id == current_user_id)
                 .first()
                 .favorite_articles
             }
@@ -50,7 +50,7 @@ class ArticlesService:
         return ArticleModelResponse(article=ArticleModelResponseInner(**params))
 
     def create_article(self, current_user_id: int, article_request: CreateArticleModel):
-        usr = self._db.query(Users).filter(Users.id == current_user_id).first()
+        usr = self._db.query(User).filter(User.id == current_user_id).first()
         if usr is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="user not found"
@@ -58,7 +58,7 @@ class ArticlesService:
         slug = "-".join(article_request.article.title.lower().split())
 
         article_slug_exists = self._db.query(
-            exists().where(Articles.slug == slug)
+            exists().where(Article.slug == slug)
         ).scalar()
 
         if article_slug_exists:
@@ -68,7 +68,7 @@ class ArticlesService:
             )
 
         created_at = datetime.now()
-        article = Articles(
+        article = Article(
             slug=slug,
             title=article_request.article.title,
             description=article_request.article.description,
@@ -88,7 +88,7 @@ class ArticlesService:
         self, current_user_id: int, slug: str, update_request: UpdateArticleModel
     ):
         article = (
-            self._db.query(Articles).filter(Articles.slug == slug.casefold()).first()
+            self._db.query(Article).filter(Article.slug == slug.casefold()).first()
         )
 
         if article is None:
@@ -96,7 +96,7 @@ class ArticlesService:
                 status_code=status.HTTP_404_NOT_FOUND, detail="article not found"
             )
 
-        usr = self._db.query(Users).filter(Users.id == current_user_id).first()
+        usr = self._db.query(User).filter(User.id == current_user_id).first()
         if article.author != usr:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -122,7 +122,7 @@ class ArticlesService:
 
         if new_title is not None:
             new_slug = "-".join(new_title.lower().split())
-            if self._db.query(exists().where(Articles.slug == new_slug)).scalar():
+            if self._db.query(exists().where(Article.slug == new_slug)).scalar():
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="article with this title already exists",
@@ -138,7 +138,7 @@ class ArticlesService:
         return self._get_article_response(article, current_user_id)
 
     def get_article(self, current_user_id: int, slug: str):
-        article = self._db.query(Articles).filter(Articles.slug == slug).first()
+        article = self._db.query(Article).filter(Article.slug == slug).first()
         if not article:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="article not found"
@@ -147,9 +147,9 @@ class ArticlesService:
 
     def delete_article(self, current_user_id: int, slug: str):
         article = (
-            self._db.query(Articles)
+            self._db.query(Article)
             .filter(
-                Articles.slug == slug.casefold(), Articles.authorId == current_user_id
+                Article.slug == slug.casefold(), Article.authorId == current_user_id
             )
             .first()
         )
@@ -162,14 +162,14 @@ class ArticlesService:
         self._db.commit()
 
     def favorite_article(self, current_user_id: int, slug: str):
-        usr = self._db.query(Users).filter(Users.id == current_user_id).first()
+        usr = self._db.query(User).filter(User.id == current_user_id).first()
         if usr is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="user not found"
             )
 
         article = (
-            self._db.query(Articles).filter(Articles.slug == slug.casefold()).first()
+            self._db.query(Article).filter(Article.slug == slug.casefold()).first()
         )
         if article is None:
             raise HTTPException(
@@ -178,6 +178,28 @@ class ArticlesService:
         if article not in usr.favorite_articles:
             article.favoritesCount += 1
             usr.favorite_articles.append(article)
+            self._db.commit()
+            self._db.refresh(article)
+
+        return self._get_article_response(article, current_user_id)
+
+    def unfavorite_article(self, current_user_id: int, slug: str):
+        usr = self._db.query(User).filter(User.id == current_user_id).first()
+        if usr is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="user not found"
+            )
+
+        article = (
+            self._db.query(Article).filter(Article.slug == slug.casefold()).first()
+        )
+        if article is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="article not found"
+            )
+        if article in usr.favorite_articles:
+            article.favoritesCount -= 1
+            usr.favorite_articles.remove(article)
             self._db.commit()
             self._db.refresh(article)
 
