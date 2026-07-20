@@ -38,3 +38,23 @@ class UpdateArticleModelInner(BaseModel):
 
 class UpdateArticleModel(BaseModel):
     article: UpdateArticleModelInner
+
+
+class CommentResponseInner(BaseModel):
+    id: Annotated[int, Field(ge=1)]
+    createdAt: datetime
+    updatedAt: datetime
+    body: Annotated[str, Field(min_length=1)]
+    author: ProfileModel
+
+
+class CommentResponse(BaseModel):
+    comment: CommentResponseInner
+
+
+class CommentRequestInner(BaseModel):
+    body: Annotated[str, Field(min_length=1)]
+
+
+class CommentRequest(BaseModel):
+    comment: CommentRequestInner

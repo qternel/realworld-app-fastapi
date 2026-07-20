@@ -1,12 +1,15 @@
 from datetime import datetime
 from typing import Annotated
 
-from db.db_models import Article, Tag, User
+from db.db_models import Article, Comment, Tag, User
 from db.utils import get_db
 from fastapi import Depends, HTTPException
 from models.articles_models import (
     ArticleModelResponse,
     ArticleModelResponseInner,
+    CommentRequest,
+    CommentResponse,
+    CommentResponseInner,
     CreateArticleModel,
     UpdateArticleModel,
 )
@@ -214,3 +217,45 @@ class ArticlesService:
 
     def get_tags(self):
         return {"tags": [tag.name for tag in self._db.query(Tag).all()]}
+
+    def add_comment(
+        self, current_user_id: int, slug: str, comment_request: CommentRequest
+    ):
+        usr = self._db.query(User).filter(User.id == current_user_id).first()
+        if usr is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="user not found"
+            )
+
+        article = self._db.query(Article).filter(Article.slug == slug).first()
+        if article is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="article not found"
+            )
+
+        created_at = datetime.now()
+        comment = Comment(body=comment_request.comment.body)
+        comment.createdAt = created_at
+        comment.updatedAt = created_at
+
+        comment.article = article
+        comment.author = usr
+
+        self._db.add(comment)
+        self._db.commit()
+        self._db.refresh(comment)
+
+        return CommentResponse(
+            comment=CommentResponseInner(
+                id=comment.id,
+                createdAt=comment.createdAt,
+                updatedAt=comment.updatedAt,
+                body=comment.body,
+                author=ProfileModel(
+                    username=usr.username,
+                    bio=usr.bio,
+                    image=usr.image,
+                    following=False,
+                ),
+            )
+        )

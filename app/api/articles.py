@@ -3,6 +3,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Path, Query
 from models.articles_models import (
     ArticleModelResponse,
+    CommentRequest,
+    CommentResponse,
     CreateArticleModel,
     UpdateArticleModel,
 )
@@ -93,3 +95,17 @@ async def unfavorite_article(
 @router.get("/api/tags", status_code=status.HTTP_200_OK)
 async def get_tags(articles_service: Annotated[ArticlesService, Depends()]):
     return articles_service.get_tags()
+
+
+@router.post(
+    "/api/articles/{slug}/comments",
+    status_code=status.HTTP_201_CREATED,
+    response_model=CommentResponse,
+)
+async def add_comment(
+    slug: Annotated[str, Path(min_length=1)],
+    comment_request: CommentRequest,
+    payload: Annotated[dict, Depends(check_jwt_required)],
+    articles_service: Annotated[ArticlesService, Depends()],
+):
+    return articles_service.add_comment(int(payload.get("sub")), slug, comment_request)

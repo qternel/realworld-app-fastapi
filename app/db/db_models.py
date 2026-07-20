@@ -55,6 +55,13 @@ class User(Base):
         "Article", secondary=user_article, back_populates="favorited_by"
     )
 
+    comments = relationship(
+        "Comment",
+        foreign_keys="Comment.authorId",
+        back_populates="author",
+        cascade="all, delete-orphan",
+    )
+
 
 class Follower(Base):
     __tablename__ = "followers"
@@ -88,8 +95,30 @@ class Article(Base):
         "User", secondary=user_article, back_populates="favorite_articles"
     )
 
+    comments = relationship(
+        "Comment",
+        foreign_keys="Comment.articleSlug",
+        back_populates="article",
+        cascade="all, delete-orphan",
+    )
+
 
 class Tag(Base):
     __tablename__ = "tags"
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True, index=True)
+
+
+class Comment(Base):
+    __tablename__ = "comments"
+    id = Column(Integer, primary_key=True)
+    body = Column(String)
+    authorId = Column(Integer, ForeignKey("users.id"))
+    createdAt = Column(DateTime)
+    updatedAt = Column(DateTime)
+    articleSlug = Column(String, ForeignKey("articles.slug"))
+
+    author = relationship("User", foreign_keys=[authorId], back_populates="comments")
+    article = relationship(
+        "Article", foreign_keys=[articleSlug], back_populates="comments"
+    )
