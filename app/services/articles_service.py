@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Annotated
 
-from db.db_models import Article, User
+from db.db_models import Article, Tag, User
 from db.utils import get_db
 from fastapi import Depends, HTTPException
 from models.articles_models import (
@@ -66,6 +66,13 @@ class ArticlesService:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="article with this title already exists",
             )
+
+        for t in article_request.article.tagList:
+            tag = Tag(name=t)
+
+            if not self._db.query(exists().where(Tag.name == t)).scalar():
+                self._db.add(tag)
+                self._db.commit()
 
         created_at = datetime.now()
         article = Article(
@@ -204,3 +211,6 @@ class ArticlesService:
             self._db.refresh(article)
 
         return self._get_article_response(article, current_user_id)
+
+    def get_tags(self):
+        return {"tags": [tag.name for tag in self._db.query(Tag).all()]}

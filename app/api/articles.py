@@ -88,3 +88,8 @@ async def unfavorite_article(
     articles_service: Annotated[ArticlesService, Depends()],
 ):
     return articles_service.unfavorite_article(int(payload.get("sub")), slug)
+
+
+@router.get("/api/tags", status_code=status.HTTP_200_OK)
+async def get_tags(articles_service: Annotated[ArticlesService, Depends()]):
+    return articles_service.get_tags()

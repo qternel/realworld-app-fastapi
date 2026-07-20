@@ -87,3 +87,9 @@ class Article(Base):
     favorited_by = relationship(
         "User", secondary=user_article, back_populates="favorite_articles"
     )
+
+
+class Tag(Base):
+    __tablename__ = "tags"
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True, index=True)

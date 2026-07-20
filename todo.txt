@@ -3,5 +3,4 @@ Feed Articles
 Add Comments to an Article
 Get Comments from an Article
 Delete Comment
-Unfavorite Article
-Get Tags
+fix jwt error (auth_service 147)
