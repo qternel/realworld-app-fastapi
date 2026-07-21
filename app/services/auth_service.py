@@ -144,7 +144,10 @@ def _check_jwt_helper(authorization: str | None):
         payload = jwt.decode(parts[1], SECRET_KEY, ALGORITHM)
         return payload
     except JWTError:
-        raise 
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="something went wrong (jwt token)",
+        )
 
 
 def check_jwt_required(authorization: Annotated[str, Depends(header_scheme_required)]):
