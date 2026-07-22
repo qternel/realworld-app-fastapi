@@ -232,9 +232,10 @@ class ArticlesService:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="article not found"
             )
+        article.commentsCount += 1
 
         created_at = datetime.now()
-        comment = Comment(body=comment_request.comment.body)
+        comment = Comment(id=article.commentsCount, body=comment_request.comment.body)
         comment.createdAt = created_at
         comment.updatedAt = created_at
 
@@ -259,3 +260,24 @@ class ArticlesService:
                 ),
             )
         )
+
+    def delete_comment(self, slug: str, id: int):
+        article = self._db.query(Article).filter(Article.slug == slug).first()
+        if article is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="article not found"
+            )
+
+        comment = (
+            self._db.query(Comment)
+            .filter(Comment.articleSlug == slug, Comment.id == id)
+            .first()
+        )
+
+        if comment is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="comment not found"
+            )
+
+        self._db.delete(comment)
+        self._db.commit()

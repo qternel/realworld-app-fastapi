@@ -87,6 +87,7 @@ class Article(Base):
     createdAt = Column(DateTime)
     updatedAt = Column(DateTime)
     favoritesCount = Column(Integer, default=0)
+    commentsCount = Column(Integer, default=0)
     authorId = Column(Integer, ForeignKey("users.id"))
 
     author = relationship("User", foreign_keys=[authorId], back_populates="articles")
@@ -112,11 +113,11 @@ class Tag(Base):
 class Comment(Base):
     __tablename__ = "comments"
     id = Column(Integer, primary_key=True)
+    articleSlug = Column(String, ForeignKey("articles.slug"), primary_key=True)
     body = Column(String)
     authorId = Column(Integer, ForeignKey("users.id"))
     createdAt = Column(DateTime)
     updatedAt = Column(DateTime)
-    articleSlug = Column(String, ForeignKey("articles.slug"))
 
     author = relationship("User", foreign_keys=[authorId], back_populates="comments")
     article = relationship(

@@ -109,3 +109,15 @@ async def add_comment(
     articles_service: Annotated[ArticlesService, Depends()],
 ):
     return articles_service.add_comment(int(payload.get("sub")), slug, comment_request)
+
+
+@router.delete(
+    "/api/articles/{slug}/comments/{id}", status_code=status.HTTP_204_NO_CONTENT
+)
+async def delete_comment(
+    slug: Annotated[str, Path(min_length=1)],
+    id: Annotated[int, Path(ge=1)],
+    payload: Annotated[dict, Depends(check_jwt_required)],
+    articles_service: Annotated[ArticlesService, Depends()],
+):
+    return articles_service.delete_comment(slug, id)
