@@ -52,6 +52,31 @@ class ArticlesService:
 
         return ArticleModelResponse(article=ArticleModelResponseInner(**params))
 
+    def _get_comment_response(self, current_user_id: int | None, comment: Comment):
+        following = False
+
+        usr = self._db.query(User).filter(User.id == current_user_id).first()
+
+        if usr is not None:
+            following = comment.author.id != usr.id and any(
+                follower.follower_id == usr.id for follower in comment.author.followers
+            )
+
+        return CommentResponse(
+            comment=CommentResponseInner(
+                id=comment.id,
+                createdAt=comment.createdAt,
+                updatedAt=comment.updatedAt,
+                body=comment.body,
+                author=ProfileModel(
+                    username=comment.author.username,
+                    bio=comment.author.bio,
+                    image=comment.author.image,
+                    following=following,
+                ),
+            )
+        )
+
     def create_article(self, current_user_id: int, article_request: CreateArticleModel):
         usr = self._db.query(User).filter(User.id == current_user_id).first()
         if usr is None:
@@ -246,20 +271,7 @@ class ArticlesService:
         self._db.commit()
         self._db.refresh(comment)
 
-        return CommentResponse(
-            comment=CommentResponseInner(
-                id=comment.id,
-                createdAt=comment.createdAt,
-                updatedAt=comment.updatedAt,
-                body=comment.body,
-                author=ProfileModel(
-                    username=usr.username,
-                    bio=usr.bio,
-                    image=usr.image,
-                    following=False,
-                ),
-            )
-        )
+        return self._get_comment_response(current_user_id, comment)
 
     def delete_comment(self, slug: str, id: int):
         article = self._db.query(Article).filter(Article.slug == slug).first()
@@ -281,3 +293,24 @@ class ArticlesService:
 
         self._db.delete(comment)
         self._db.commit()
+
+    def get_comments(self, slug: str, current_user_id: int | None):
+
+        if current_user_id is not None:
+            usr = self._db.query(User).filter(User.id == current_user_id).first()
+            if usr is None:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail="user not found"
+                )
+
+        article = self._db.query(Article).filter(Article.slug == slug).first()
+        if article is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="article not found"
+            )
+
+        res = [
+            self._get_comment_response(current_user_id, comment)
+            for comment in article.comments
+        ]
+        return res
