@@ -314,3 +314,17 @@ class ArticlesService:
             for comment in article.comments
         ]
         return res
+
+    def list_articles(
+        self,
+        tag: str | None,
+        author: str | None,
+        favorited: str | None,
+        limit: int,
+        offset: int,
+    ):
+        pass
+
+        # articles = self._db.query(Article).limit(limit).skip()
+
+        # return articles

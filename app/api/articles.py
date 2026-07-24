@@ -131,3 +131,15 @@ async def get_comments(
 ):
     current_user_id = None if payload is None else int(payload.get("sub"))
     return articles_service.get_comments(slug, current_user_id)
+
+
+@router.get("/api/articles", status_code=status.HTTP_200_OK)
+async def list_articles(
+    tag: Annotated[str | None, Query(min_length=1, default=None)],
+    author: Annotated[str | None, Query(min_length=1, default=None)],
+    favorited: Annotated[str | None, Query(min_length=1, default=None)],
+    limit: Annotated[int, Query(default=20)],
+    offset: Annotated[int, Query(default=0)],
+    articles_service: Annotated[ArticlesService, Depends()],
+):
+    return articles_service.list_articles(tag, author, favorited, limit, offset)
