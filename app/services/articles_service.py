@@ -23,22 +23,34 @@ class ArticlesService:
     def __init__(self, db: Annotated[Session, Depends(get_db)]):
         self._db = db
 
-    def _get_article_response(self, article: Article, current_user_id: int):
+    def _get_article_response(
+        self, article: Article, current_user_id: int | None = None
+    ):
         params = article.__dict__.copy()
         params.pop("authorId")
-        params.update(
-            {
-                "favorited": article
-                in self._db.query(User)
-                .filter(User.id == current_user_id)
-                .first()
-                .favorite_articles
-            }
-        )
+
+        if current_user_id is not None:
+            params.update(
+                {
+                    "favorited": article
+                    in self._db.query(User)
+                    .filter(User.id == current_user_id)
+                    .first()
+                    .favorite_articles
+                }
+            )
+        else:
+            params.update({"favorited": False})
+
         author = article.author
-        following = author.id != current_user_id and any(
-            follower.follower_id == current_user_id for follower in author.followers
-        )
+
+        if current_user_id is not None:
+            following = author.id != current_user_id and any(
+                follower.follower_id == current_user_id for follower in author.followers
+            )
+        else:
+            following = False
+
         params.update(
             {
                 "author": ProfileModel(
@@ -323,8 +335,20 @@ class ArticlesService:
         limit: int,
         offset: int,
     ):
-        pass
 
-        # articles = self._db.query(Article).limit(limit).skip()
+        articles = self._db.query(Article)
 
-        # return articles
+        if tag is not None:
+            articles = articles.filter(Article.tagList.contains(tag))
+
+        if author is not None:
+            articles = articles.filter(Article.author.has(User.username == author))
+
+        if favorited is not None:
+            articles = articles.filter(
+                Article.favorited_by.any(User.username == favorited)
+            )
+
+        articles = articles.offset(offset).limit(limit).all()
+        articles = [self._get_article_response(article) for article in articles]
+        return articles
