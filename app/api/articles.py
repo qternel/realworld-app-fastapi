@@ -28,6 +28,16 @@ async def create_article(
     return articles_service.create_article(int(payload.get("sub")), article_request)
 
 
+@router.get("/api/articles/feed", status_code=status.HTTP_200_OK)
+async def feed_articles(
+    payload: Annotated[dict, Depends(check_jwt_required)],
+    articles_service: Annotated[ArticlesService, Depends()],
+    limit: Annotated[int, Query()] = 20,
+    offset: Annotated[int, Query()] = 0,
+):
+    return articles_service.feed_articles(int(payload.get("sub")), limit, offset)
+
+
 @router.get(
     "/api/articles/{slug}",
     status_code=status.HTTP_200_OK,
@@ -135,6 +145,7 @@ async def get_comments(
 
 @router.get("/api/articles", status_code=status.HTTP_200_OK)
 async def list_articles(
+    payload: Annotated[dict, Depends(check_jwt_optional)],
     articles_service: Annotated[ArticlesService, Depends()],
     tag: Annotated[str | None, Query(min_length=1)] = None,
     author: Annotated[str | None, Query(min_length=1)] = None,
@@ -142,4 +153,7 @@ async def list_articles(
     limit: Annotated[int, Query()] = 20,
     offset: Annotated[int, Query()] = 0,
 ):
-    return articles_service.list_articles(tag, author, favorited, limit, offset)
+    current_user_id = None if payload is None else int(payload.get("sub"))
+    return articles_service.list_articles(
+        current_user_id, tag, author, favorited, limit, offset
+    )

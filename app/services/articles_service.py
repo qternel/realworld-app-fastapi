@@ -329,6 +329,7 @@ class ArticlesService:
 
     def list_articles(
         self,
+        current_user_id: int,
         tag: str | None,
         author: str | None,
         favorited: str | None,
@@ -349,6 +350,35 @@ class ArticlesService:
                 Article.favorited_by.any(User.username == favorited)
             )
 
-        articles = articles.offset(offset).limit(limit).all()
-        articles = [self._get_article_response(article) for article in articles]
+        articles = (
+            articles.order_by(Article.createdAt.desc())
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+        articles = [self._get_article_response(article, current_user_id) for article in articles]
+        return articles
+
+    def feed_articles(self, current_user_id: int, limit: int, offset: int):
+        usr = self._db.query(User).filter(User.id == current_user_id).first()
+        if usr is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="user not found"
+            )
+
+        following_ids = [follower.owner_id for follower in usr.following]
+
+        if not following_ids:
+            return []
+
+        articles = (
+            self._db.query(Article)
+            .filter(Article.authorId.in_(following_ids))
+            .order_by(Article.createdAt.desc())
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+
+        articles = [self._get_article_response(article, current_user_id) for article in articles]
         return articles

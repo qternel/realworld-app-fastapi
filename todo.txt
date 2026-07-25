@@ -1,1 +1,2 @@
-Feed Articles
+make article's tags a relationship
+get rid of Follower class
