@@ -76,6 +76,14 @@ class Follower(Base):
     )
 
 
+article_tag = Table(
+    "articles_tags",
+    Base.metadata,
+    Column("article_id", Integer, ForeignKey("articles.id"), primary_key=True),
+    Column("tag_id", Integer, ForeignKey("tags.id"), primary_key=True),
+)
+
+
 class Article(Base):
     __tablename__ = "articles"
     id = Column(Integer, primary_key=True)
@@ -83,7 +91,6 @@ class Article(Base):
     title = Column(String)
     description = Column(String)
     body = Column(String)
-    tagList = Column(JSON, nullable=True)
     createdAt = Column(DateTime)
     updatedAt = Column(DateTime)
     favoritesCount = Column(Integer, default=0)
@@ -103,11 +110,18 @@ class Article(Base):
         cascade="all, delete-orphan",
     )
 
+    tags = relationship(
+        "Tag",
+        secondary=article_tag,
+        back_populates="articles",
+    )
+
 
 class Tag(Base):
     __tablename__ = "tags"
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True, index=True)
+    articles = relationship("Article", secondary=article_tag, back_populates="tags")
 
 
 class Comment(Base):

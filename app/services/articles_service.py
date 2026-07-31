@@ -28,6 +28,7 @@ class ArticlesService:
     ):
         params = article.__dict__.copy()
         params.pop("authorId")
+        params.update({"tagList": [tag.name for tag in article.tags]})
 
         if current_user_id is not None:
             params.update(
@@ -107,24 +108,25 @@ class ArticlesService:
                 detail="article with this title already exists",
             )
 
-        for t in article_request.article.tagList:
-            tag = Tag(name=t)
-
-            if not self._db.query(exists().where(Tag.name == t)).scalar():
-                self._db.add(tag)
-                self._db.commit()
-
         created_at = datetime.now()
         article = Article(
             slug=slug,
             title=article_request.article.title,
             description=article_request.article.description,
             body=article_request.article.body,
-            tagList=article_request.article.tagList,
             createdAt=created_at,
             updatedAt=created_at,
             authorId=current_user_id,
         )
+
+        for t in article_request.article.tagList:
+            tag = Tag(name=t.lower())
+            article.tags.append(tag)
+            if not self._db.query(
+                exists().where(Tag.name == t)
+            ).scalar():  # n + 1 query problem -> fix!!!!
+                self._db.add(tag)
+
         self._db.add(article)
         self._db.commit()
         self._db.refresh(article)
@@ -340,7 +342,7 @@ class ArticlesService:
         articles = self._db.query(Article)
 
         if tag is not None:
-            articles = articles.filter(Article.tagList.contains(tag))
+            articles = articles.filter(Article.tags.any(Tag.name == tag.casefold()))
 
         if author is not None:
             articles = articles.filter(Article.author.has(User.username == author))
@@ -356,7 +358,9 @@ class ArticlesService:
             .limit(limit)
             .all()
         )
-        articles = [self._get_article_response(article, current_user_id) for article in articles]
+        articles = [
+            self._get_article_response(article, current_user_id) for article in articles
+        ]
         return articles
 
     def feed_articles(self, current_user_id: int, limit: int, offset: int):
@@ -380,5 +384,7 @@ class ArticlesService:
             .all()
         )
 
-        articles = [self._get_article_response(article, current_user_id) for article in articles]
+        articles = [
+            self._get_article_response(article, current_user_id) for article in articles
+        ]
         return articles
