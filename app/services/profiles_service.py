@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from db.db_models import Follower, User
+from db.db_models import User
 from db.utils import get_db
 from fastapi import Depends, HTTPException
 from models.profiles_models import ProfileModel, ProfileResponse
@@ -21,16 +21,8 @@ class ProfilesService:
                 detail=f"user {username} does not exist",
             )
         if current_user_id is not None:
-            following = (
-                self._db.query(Follower)
-                .filter(
-                    and_(
-                        Follower.owner_id == usr.id,
-                        Follower.follower_id == current_user_id,
-                    )
-                )
-                .first()
-                is not None
+            following = current_user_id != usr.id and any(
+                follower.id == current_user_id for follower in usr.followers
             )
         else:
             following = False
@@ -56,21 +48,15 @@ class ProfilesService:
                 detail="you're trying to follow yourself",
             )
 
-        following = (
-            self._db.query(Follower)
-            .filter(
-                and_(
-                    Follower.owner_id == usr.id,
-                    Follower.follower_id == current_user_id,
-                )
-            )
-            .first()
-            is not None
+        following = following = current_user_id != usr.id and any(
+            follower.id == current_user_id for follower in usr.followers
         )
 
         if not following:
-            follower = Follower(follower_id=current_user_id)
-            usr.followers.append(follower)
+            current_user = (
+                self._db.query(User).filter(User.id == current_user_id).first()
+            )
+            usr.followers.append(current_user)
             self._db.commit()
             self._db.refresh(usr)
 
@@ -88,14 +74,9 @@ class ProfilesService:
                 detail=f"user {username} does not exist",
             )
 
-        follower = (
-            self._db.query(Follower)
-            .filter(
-                Follower.owner_id == usr.id, Follower.follower_id == current_user_id
-            )
-            .first()
-        )
-        if follower is not None:
+        follower = self._db.query(User).filter(User.id == current_user_id).first()
+
+        if follower in usr.followers:
             usr.followers.remove(follower)
             self._db.commit()
             self._db.refresh(usr)

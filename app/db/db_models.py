@@ -1,7 +1,4 @@
 from sqlalchemy import (
-    JSON,
-    Boolean,
-    CheckConstraint,
     Column,
     DateTime,
     ForeignKey,
@@ -20,6 +17,13 @@ user_article = Table(
     Column("article_id", Integer, ForeignKey("articles.id"), primary_key=True),
 )
 
+users_followers = Table(
+    "users_followers",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("users.id"), primary_key=True),
+    Column("follower_id", Integer, ForeignKey("users.id"), primary_key=True),
+)
+
 
 class User(Base):
     __tablename__ = "users"
@@ -31,17 +35,19 @@ class User(Base):
     hashed_password = Column(String)
 
     followers = relationship(
-        "Follower",
-        foreign_keys="Follower.owner_id",
-        back_populates="owner",
-        cascade="all, delete-orphan",
+        "User",
+        secondary=users_followers,
+        primaryjoin=id == users_followers.c.user_id,
+        secondaryjoin=id == users_followers.c.follower_id,
+        back_populates="following",
     )
 
     following = relationship(
-        "Follower",
-        foreign_keys="Follower.follower_id",
-        back_populates="follower",
-        cascade="all, delete-orphan",
+        "User",
+        secondary=users_followers,
+        primaryjoin=id == users_followers.c.follower_id,
+        secondaryjoin=id == users_followers.c.user_id,
+        back_populates="followers",
     )
 
     articles = relationship(
@@ -60,19 +66,6 @@ class User(Base):
         foreign_keys="Comment.authorId",
         back_populates="author",
         cascade="all, delete-orphan",
-    )
-
-
-class Follower(Base):
-    __tablename__ = "followers"
-    owner_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
-    follower_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
-    __table_args__ = (CheckConstraint("owner_id != follower_id"),)
-
-    owner = relationship("User", foreign_keys=[owner_id], back_populates="followers")
-
-    follower = relationship(
-        "User", foreign_keys=[follower_id], back_populates="following"
     )
 
 

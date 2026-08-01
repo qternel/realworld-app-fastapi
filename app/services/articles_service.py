@@ -47,7 +47,7 @@ class ArticlesService:
 
         if current_user_id is not None:
             following = author.id != current_user_id and any(
-                follower.follower_id == current_user_id for follower in author.followers
+                follower.id == current_user_id for follower in author.followers
             )
         else:
             following = False
@@ -72,7 +72,7 @@ class ArticlesService:
 
         if usr is not None:
             following = comment.author.id != usr.id and any(
-                follower.follower_id == usr.id for follower in comment.author.followers
+                follower.id == usr.id for follower in comment.author.followers
             )
 
         return CommentResponse(
@@ -120,12 +120,15 @@ class ArticlesService:
         )
 
         for t in article_request.article.tagList:
-            tag = Tag(name=t.lower())
-            article.tags.append(tag)
-            if not self._db.query(
-                exists().where(Tag.name == t)
-            ).scalar():  # n + 1 query problem -> fix!!!!
+            tag = (
+                self._db.query(Tag).filter(Tag.name == t.casefold()).first()
+            )  # n+1 problem
+
+            if tag is None:
+                tag = Tag(name=t.lower())
                 self._db.add(tag)
+
+            article.tags.append(tag)
 
         self._db.add(article)
         self._db.commit()
@@ -370,7 +373,7 @@ class ArticlesService:
                 status_code=status.HTTP_404_NOT_FOUND, detail="user not found"
             )
 
-        following_ids = [follower.owner_id for follower in usr.following]
+        following_ids = [following.id for following in usr.following]
 
         if not following_ids:
             return []
