@@ -1,4 +1,6 @@
 fix n+1 query problems
-make error message structure correspond to the one in specification
-write tests
+test articles
+test auth
+test profiles
+test user
 move constants to a .env file
