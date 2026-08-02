@@ -1,4 +1,3 @@
-delete unnecessary cascades in relationships
 fix n+1 query problems
 make error message structure correspond to the one in specification
 write tests
