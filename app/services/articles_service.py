@@ -1,10 +1,14 @@
 from datetime import datetime
 from typing import Annotated
 
-from db.db_models import Article, Comment, Tag, User
-from db.utils import get_db
 from fastapi import Depends, HTTPException
-from models.articles_models import (
+from sqlalchemy import exists
+from sqlalchemy.orm import Session
+from starlette import status
+
+from app.db.db_models import Article, Comment, Tag, User
+from app.db.utils import get_db
+from app.models.articles_models import (
     ArticleModelResponse,
     ArticleModelResponseInner,
     CommentRequest,
@@ -13,10 +17,7 @@ from models.articles_models import (
     CreateArticleModel,
     UpdateArticleModel,
 )
-from models.profiles_models import ProfileModel
-from sqlalchemy import exists
-from sqlalchemy.orm import Session
-from starlette import status
+from app.models.profiles_models import ProfileModel
 
 
 class ArticlesService:

@@ -1,16 +1,17 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path, Query
-from models.articles_models import (
+from starlette import status
+
+from app.models.articles_models import (
     ArticleModelResponse,
     CommentRequest,
     CommentResponse,
     CreateArticleModel,
     UpdateArticleModel,
 )
-from services.articles_service import ArticlesService
-from services.auth_service import check_jwt_optional, check_jwt_required
-from starlette import status
+from app.services.articles_service import ArticlesService
+from app.services.auth_service import check_jwt_optional, check_jwt_required
 
 router = APIRouter()
 

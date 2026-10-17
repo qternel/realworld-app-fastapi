@@ -2,21 +2,22 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
 import bcrypt
-from db.db_models import User
-from db.utils import get_db
 from fastapi import Depends, Header, HTTPException
 from fastapi.security import APIKeyHeader
 from jose import JWTError, jwt
-from models.auth_models import (
+from sqlalchemy import or_
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
+from starlette import status
+
+from app.db.db_models import User
+from app.db.utils import get_db
+from app.models.auth_models import (
     AuthResponse,
     RegistrationRequest,
     SignInRequest,
     UserResponse,
 )
-from sqlalchemy import or_
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
-from starlette import status
 
 SECRET_KEY = "ABDASDASDIWEFJ349RF342JF0934"
 ALGORITHM = "HS256"

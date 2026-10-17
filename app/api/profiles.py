@@ -1,10 +1,11 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path
-from models.profiles_models import ProfileResponse
-from services.auth_service import check_jwt_optional, check_jwt_required
-from services.profiles_service import ProfilesService
 from starlette import status
+
+from app.models.profiles_models import ProfileResponse
+from app.services.auth_service import check_jwt_optional, check_jwt_required
+from app.services.profiles_service import ProfilesService
 
 router = APIRouter()
 

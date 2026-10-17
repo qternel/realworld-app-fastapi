@@ -1,11 +1,12 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from models.auth_models import AuthResponse
-from models.user_models import UpdateRequest
-from services.auth_service import check_jwt_required
-from services.user_service import UserService
 from starlette import status
+
+from app.models.auth_models import AuthResponse
+from app.models.user_models import UpdateRequest
+from app.services.auth_service import check_jwt_required
+from app.services.user_service import UserService
 
 router = APIRouter()
 

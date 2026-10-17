@@ -1,16 +1,16 @@
 from typing import Annotated
 
 import bcrypt
-from db.db_models import User
-from db.utils import get_db
 from fastapi import Depends, HTTPException
 from jose import jwt
-from models.auth_models import AuthResponse, UserResponse
-from models.user_models import UpdatedUser, UpdateRequest
 from sqlalchemy.orm import Session
 from starlette import status
 
-from .auth_service import ALGORITHM, SECRET_KEY
+from app.db.db_models import User
+from app.db.utils import get_db
+from app.models.auth_models import AuthResponse, UserResponse
+from app.models.user_models import UpdatedUser, UpdateRequest
+from app.services.auth_service import ALGORITHM, SECRET_KEY
 
 
 class UserService:

@@ -1,12 +1,13 @@
 from typing import Annotated
 
-from db.db_models import User
-from db.utils import get_db
 from fastapi import Depends, HTTPException
-from models.profiles_models import ProfileModel, ProfileResponse
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 from starlette import status
+
+from app.db.db_models import User
+from app.db.utils import get_db
+from app.models.profiles_models import ProfileModel, ProfileResponse
 
 
 class ProfilesService:

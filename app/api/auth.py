@@ -1,11 +1,12 @@
 from typing import Annotated
 
-from db.utils import get_db
 from fastapi import APIRouter, Depends
 from jose import jwt
-from models.auth_models import AuthResponse, RegistrationRequest, SignInRequest
-from services.auth_service import AuthService
 from starlette import status
+
+from app.db.utils import get_db
+from app.models.auth_models import AuthResponse, RegistrationRequest, SignInRequest
+from app.services.auth_service import AuthService
 
 router = APIRouter()
 

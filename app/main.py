@@ -1,7 +1,8 @@
-from api import articles, auth, profiles, user
-from db.database import Base, engine
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
+
+from app.api import articles, auth, profiles, user
+from app.db.database import Base, engine
 
 app = FastAPI()
 
