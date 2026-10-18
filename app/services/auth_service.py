@@ -10,6 +10,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from starlette import status
 
+from app.constants import ALGORITHM, SECRET_KEY
 from app.db.db_models import User
 from app.db.utils import get_db
 from app.models.auth_models import (
@@ -18,9 +19,6 @@ from app.models.auth_models import (
     SignInRequest,
     UserResponse,
 )
-
-SECRET_KEY = "ABDASDASDIWEFJ349RF342JF0934"
-ALGORITHM = "HS256"
 
 
 class AuthService:
