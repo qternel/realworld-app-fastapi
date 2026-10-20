@@ -16,6 +16,9 @@ token = (
     .get("token")
 )
 
+image = "im.im/im"
+bio = "cool bio"
+
 
 def test_get_current_user():
     response: httpx.Response = test_client.get(
@@ -54,8 +57,8 @@ def test_update_user():
             "user": {
                 # "email": ...,
                 # "username": ...,
-                "image": "im.im/im",
-                "bio": "cool bio",
+                "image": image,
+                "bio": bio,
             }
         },
     )
@@ -68,8 +71,8 @@ def test_update_user():
     )
 
     response_json_inner = response.json().get("user")
-    assert response_json_inner.get("image") == "im.im/im"
-    assert response_json_inner.get("bio") == "cool bio"
+    assert response_json_inner.get("image") == image
+    assert response_json_inner.get("bio") == bio
 
 
 def test_update_user_fail():
