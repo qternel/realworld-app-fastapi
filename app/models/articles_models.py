@@ -11,7 +11,7 @@ class ArticleModel(BaseModel):
     description: Annotated[str, Field(min_length=1)]
     body: Annotated[str, Field(min_length=1)]
     tagList: Annotated[list[str] | None, Field(default=None)]
-
+    
 
 class CreateArticleModel(BaseModel):
     article: ArticleModel

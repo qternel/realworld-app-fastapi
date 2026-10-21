@@ -120,15 +120,32 @@ class ArticlesService:
             authorId=current_user_id,
         )
 
+        # for t in article_request.article.tagList:
+        #     tag = (
+        #         self._db.query(Tag).filter(Tag.name == t.casefold()).first()
+        #     )  # n+1 problem
+
+        #     if tag is None:
+        #         tag = Tag(name=t.lower())
+        #         self._db.add(tag)
+
+        #     article.tags.append(tag)
+
+        existing_tags = (
+            self._db.query(Tag)
+            .filter(Tag.name.in_(t.lower() for t in article_request.article.tagList))
+            .all()
+        )
+
+        for t in existing_tags:
+            article.tags.append(t)
+
+        existing_tags = set(t.name for t in existing_tags)
         for t in article_request.article.tagList:
-            tag = (
-                self._db.query(Tag).filter(Tag.name == t.casefold()).first()
-            )  # n+1 problem
-
-            if tag is None:
-                tag = Tag(name=t.lower())
-                self._db.add(tag)
-
+            if t.casefold() in existing_tags:
+                continue
+            tag = Tag(name=t.lower())
+            self._db.add(tag)
             article.tags.append(tag)
 
         self._db.add(article)
